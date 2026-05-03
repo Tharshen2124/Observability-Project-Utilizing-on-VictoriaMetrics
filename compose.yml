@@ -47,7 +47,7 @@ services:
       - grafana_data:/var/lib/grafana
     environment:
       # allow grafana to query visualise and interact with VictorialMetrics
-      - "GF_INSTALL_PLUGINS=victoriametrics-logs-datasource"
+      - "GF_INSTALL_PLUGINS=victoriametrics-logs-datasource,jaeger"
     depends_on:
       - victoriametrics 
       - victorialogs

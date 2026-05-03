@@ -1,12 +1,16 @@
-# this file is used to tell grafana to connect to our VM and VI instances. 
-# It is mounted as a volume in the grafana service in compose.yml
 apiVersion: 1
 
 datasources:
   - name: VictoriaLogs
     type: victoriametrics-logs-datasource
     access: proxy
-    url:  http://victorialogs:9428/
+    url: http://victorialogs:9428/
+    uid: victorialogs
+    jsonData:
+      derivedFields:
+        - name: traceID
+          matcherName: trace_id
+          datasourceUid: victoriatraces
 
   - name: VictoriaMetrics
     type: prometheus
@@ -14,6 +18,11 @@ datasources:
     url: http://victoriametrics:8428/
 
   - name: VictoriaTraces
-    type: opentelemetry-traces-datasource
+    type: jaeger
     access: proxy
-    url: http://victoriatraces:9429/
+    url: http://victoriatraces:10428/select/jaeger
+    uid: victoriatraces
+    jsonData:
+      tracesToLogsV2:
+        datasourceUid: victorialogs
+        filterByTraceID: true

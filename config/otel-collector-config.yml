@@ -27,7 +27,7 @@ exporters:
     metrics_endpoint: "http://victoriametrics:8428/opentelemetry/v1/metrics"
 
   otlphttp/victoriatraces:
-    traces_endpoint: "http://victoriatraces:9429/insert/opentelemetry/v1/traces"
+    traces_endpoint: "http://victoriatraces:10428/insert/opentelemetry/v1/traces"
 
   otlphttp/victorialogs:
     logs_endpoint: "http://victorialogs:9428/insert/opentelemetry/v1/logs"
