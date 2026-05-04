@@ -64,7 +64,7 @@ func SetupOTelSDK(ctx context.Context) (func(context.Context) error, error) {
 func newMeterProvider(ctx context.Context) (*metric.MeterProvider, error) {
 	metricExporter, err := otlpmetrichttp.New(
 		ctx, 
-		otlpmetrichttp.WithEndpoint("localhost:4318"),
+		otlpmetrichttp.WithEndpoint("opentelemetry:4318"),
 		otlpmetrichttp.WithInsecure(),
 	)
 	if err != nil {
@@ -84,7 +84,7 @@ func newMeterProvider(ctx context.Context) (*metric.MeterProvider, error) {
 func newLoggerProvider(ctx context.Context) (*log.LoggerProvider, error) {
 	logExporter, err := otlploghttp.New(
 		ctx,
-		otlploghttp.WithEndpoint("localhost:4318"),
+		otlploghttp.WithEndpoint("opentelemetry:4318"),
 		otlploghttp.WithInsecure(),
 	)
 	if err != nil {
@@ -101,7 +101,7 @@ func newLoggerProvider(ctx context.Context) (*log.LoggerProvider, error) {
 func newTracerProvider(ctx context.Context) (*trace.TracerProvider, error) {
 	traceExporter, err := otlptracehttp.New(
 		ctx,
-		otlptracehttp.WithEndpoint("localhost:4318"),
+		otlptracehttp.WithEndpoint("opentelemetry:4318"),
 		otlptracehttp.WithInsecure(),
 	)
 
