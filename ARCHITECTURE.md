@@ -144,7 +144,26 @@ All error responses have the shape:
 { "error": "human-readable message" }
 ```
 
-## 5. Debugging Guide
+## 5. Observability & Telemetry Pipeline
+
+The Go API is instrumented with the OpenTelemetry SDK and exports telemetry to a local OTel Collector, which fans it out to the appropriate backends.
+
+```
+Go API (OTLP HTTP → :4318)
+    │
+    ▼
+OpenTelemetry Collector
+    ├── metrics  ──► VictoriaMetrics  (:8428)
+    ├── traces   ──► VictoriaTraces   (:10428)
+    └── logs     ──► VictoriaLogs     (:9428)   ← hot, queryable via Grafana
+                 └──► AWS S3                    ← cold archive
+                          bucket : tharshen-terraform-primary-bucket
+                          prefix : logs/YYYY/MM/DD/HH/MM
+```
+
+**AWS S3 log export** is handled by the `awss3` exporter in `config/otel-collector-config.yml`. AWS credentials are injected into the collector container via a `.env` file (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`). The bucket and IAM resources are provisioned in `terraform/`.
+
+## 6. Debugging Guide
 
 | Symptom | Where to look |
 |---------|---------------|

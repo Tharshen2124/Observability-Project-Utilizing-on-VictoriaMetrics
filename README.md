@@ -22,16 +22,19 @@ The goal is to understand how metrics and logs flow through a modern observabili
 
 - **VictoriaMetrics** (`victoriametrics/victoria-metrics`)
 - **VictoriaLogs** (`victoriametrics/victoria-logs`)
+- **VictoriaTraces** (`victoriametrics/victoria-traces`)
 - **OpenTelemetry Collector** (`otel/opentelemetry-collector-contrib`)
 - **Grafana** (`grafana/grafana`)
+- **AWS S3** (long-term log archival via OTel Collector `awss3` exporter)
 - **Golang** (to produce sample app telemetry)
 
 ## Architecture (high level)
 
-1. A Golang app emits metrics/logs/traces (typically via OpenTelemetry SDK).
+1. A Golang app emits metrics/logs/traces via the OpenTelemetry SDK.
 2. OpenTelemetry Collector receives telemetry on OTLP HTTP (`4318`).
-3. Telemetry is exported to VictoriaMetrics and VictoriaLogs.
-4. Grafana reads from VictoriaMetrics and VictoriaLogs for dashboards and queries.
+3. Metrics are exported to VictoriaMetrics; traces to VictoriaTraces.
+4. Logs are exported to **both** VictoriaLogs (hot/queryable) and **AWS S3** (cold archival, partitioned by `YYYY/MM/DD/HH/MM`).
+5. Grafana reads from VictoriaMetrics, VictoriaLogs, and VictoriaTraces for dashboards and queries.
 
 ## Services and Ports
 
@@ -47,28 +50,39 @@ From `compose.yml`:
 ## Prerequisites
 
 - Docker + Docker Compose
+- AWS account with an S3 bucket and an IAM user/role that has `s3:PutObject` permission on the bucket
+- A `.env` file in the project root with your AWS credentials (see Getting Started)
 - (Optional) Go installed locally if you want to run a sample app outside containers
 
 ## Getting Started
 
-1. Start the stack:
+1. Create a `.env` file in the project root with your AWS credentials:
+
+	```bash
+	AWS_ACCESS_KEY_ID=your_access_key_id
+	AWS_SECRET_ACCESS_KEY=your_secret_access_key
+	```
+
+	> The OTel Collector uses these to authenticate the `awss3` log exporter.
+
+2. Start the stack:
 
 	```bash
 	docker compose up -d
 	```
 
-2. Check running services:
+3. Check running services:
 
 	```bash
 	docker compose ps
 	```
 
-3. Open Grafana:
+4. Open Grafana:
 
 	- URL: `http://localhost:3000`
 	- Default credentials (unless changed): `admin` / `admin`
 
-4. Stop the stack when done:
+5. Stop the stack when done:
 
 	```bash
 	docker compose down
@@ -110,9 +124,13 @@ docker compose down -v
 ```text
 .
 ├── compose.yml
+├── .env                          # AWS credentials (not committed)
 ├── README.md
+├── ARCHITECTURE.md
+├── config/
+│   └── otel-collector-config.yml
 ├── grafana-datasources.yaml
-└── otel-collector-config.yaml
+└── terraform/                    # AWS infrastructure (S3 bucket, IAM)
 ```
 
 ## Notes
