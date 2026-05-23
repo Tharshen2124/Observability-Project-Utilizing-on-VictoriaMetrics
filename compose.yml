@@ -60,7 +60,9 @@ services:
       - ./config/otel-collector-config.yml:/etc/otel-collector-config.yml
     ports:
       - "4318:4318"
-
+    env_file:
+      - .env
+    
   api:
     build: .
     ports:
