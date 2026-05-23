@@ -4,25 +4,34 @@
 
 ```
 .
-├── main.go                  Entry point — loads config, inits store, starts HTTP server
+├── main.go                        Entry point — loads config, inits store, starts HTTP server
+├── compose.yml                    Docker Compose stack (API, OTel Collector, Victoria*, Grafana)
+├── .env                           AWS credentials injected into OTel Collector (not committed)
+├── grafana-datasources.yaml       Grafana datasource provisioning
 ├── config/
-│   └── config.go            Reads PORT and DATABASE_URL from .env via spf13/viper
+│   ├── config.go                  Reads PORT and DATABASE_URL from .env via spf13/viper
+│   └── otel-collector-config.yml  OTel Collector pipeline: receivers, exporters (Victoria* + S3)
+├── terraform/
+│   ├── main.tf                    Root Terraform config — wires modules, sets AWS provider
+│   └── modules/
+│       └── s3/
+│           └── main.tf            S3 bucket + IAM policy for log archival
 ├── db/
-│   └── db.go                Thread-safe in-memory store (sync.RWMutex maps); seeds sample products
+│   └── db.go                      Thread-safe in-memory store (sync.RWMutex maps); seeds sample products
 ├── models/
-│   ├── user.go              User domain type
-│   ├── product.go           Product domain type
-│   └── order.go             Order + OrderItem domain types; OrderStatus constants
+│   ├── user.go                    User domain type
+│   ├── product.go                 Product domain type
+│   └── order.go                   Order + OrderItem domain types; OrderStatus constants
 ├── handlers/
-│   ├── user_handler.go      HTTP handlers for /api/users endpoints
-│   ├── product_handler.go   HTTP handlers for /api/products endpoints
-│   └── order_handler.go     HTTP handlers for /api/orders endpoints
+│   ├── user_handler.go            HTTP handlers for /api/users endpoints
+│   ├── product_handler.go         HTTP handlers for /api/products endpoints
+│   └── order_handler.go           HTTP handlers for /api/orders endpoints
 ├── routes/
-│   └── routes.go            Registers all routes on a gorilla/mux router; attaches middleware
+│   └── routes.go                  Registers all routes on a gorilla/mux router; attaches middleware
 ├── middlewares/
-│   └── logging.go           Per-request logging: method, path, status code, duration
+│   └── logging.go                 Per-request logging: method, path, status code, duration
 └── utils/
-    └── response.go          JSON() and Error() response helpers; NewID() random hex ID generator
+    └── response.go                JSON() and Error() response helpers; NewID() random hex ID generator
 ```
 
 ## 2. Request Lifecycle
@@ -176,3 +185,6 @@ OpenTelemetry Collector
 | Status code not appearing in logs | `middlewares/logging.go` — the `responseWriter` wrapper; check `WriteHeader` is called by the handler |
 | Server does not start | `main.go` + `config/config.go` — ensure `.env` contains `PORT=<number>` |
 | Middleware not executing | `routes/routes.go` — `r.Use(middlewares.Logging)` must be called before handler registration |
+| Logs not appearing in S3 | `config/otel-collector-config.yml` — verify `awss3` exporter is listed under `logs.exporters`; check `.env` has valid `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` |
+| OTel Collector fails to start | Run `docker compose logs opentelemetry` — missing `.env` or malformed `otel-collector-config.yml` are the most common causes |
+| S3 bucket does not exist | Run `terraform apply` in `terraform/` — the bucket is not created manually, it is provisioned by the S3 module |

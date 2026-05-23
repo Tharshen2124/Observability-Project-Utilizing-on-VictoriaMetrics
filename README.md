@@ -6,19 +6,25 @@ This is a **learning project** to practice setting up and using:
 
 - VictoriaMetrics
 - VictoriaLogs
+- VictoriaTraces
 - OpenTelemetry
 - Grafana
+- AWS S3 (log archival)
+- Terraform (AWS infrastructure provisioning)
 - Golang (for instrumented demo app)
 
-The goal is to understand how metrics and logs flow through a modern observability stack and how to visualize/query them in Grafana.
+The goal is to understand how metrics, logs, and traces flow through a modern observability stack, how to visualize/query them in Grafana, and how to archive logs long-term to S3.
 
 ## What this project is for
 
 - Learn how to run a local observability stack with Docker Compose.
-- Learn how OpenTelemetry can collect/forward telemetry.
+- Learn how OpenTelemetry can collect/forward telemetry (metrics, logs, and traces).
 - Learn how VictoriaMetrics stores and serves time-series metrics.
 - Learn how VictoriaLogs stores and serves logs.
-- Learn how Grafana connects to both backends for dashboards and exploration.
+- Learn how VictoriaTraces stores and serves distributed traces.
+- Learn how Grafana connects to all three backends for dashboards and exploration.
+- Learn how to archive logs long-term to AWS S3 with time-based partitioning.
+- Learn how to provision cloud infrastructure (S3 bucket, IAM) with Terraform.
 
 ## Tech Stack
 
@@ -52,13 +58,22 @@ From `compose.yml`:
 ## Prerequisites
 
 - Docker + Docker Compose
-- AWS account with an S3 bucket and an IAM user/role that has `s3:PutObject` permission on the bucket
+- AWS account with credentials that have permissions to provision S3 and IAM resources
+- Terraform installed (to provision the S3 bucket and IAM resources in `terraform/`)
 - A `.env` file in the project root with your AWS credentials (see Getting Started)
 - (Optional) Go installed locally if you want to run a sample app outside containers
 
 ## Getting Started
 
-1. Create a `.env` file in the project root with your AWS credentials:
+1. Provision AWS infrastructure with Terraform:
+
+	```bash
+	cd terraform
+	terraform init
+	terraform apply
+	```
+
+2. Create a `.env` file in the project root with your AWS credentials:
 
 	```bash
 	AWS_ACCESS_KEY_ID=your_access_key_id
@@ -67,24 +82,24 @@ From `compose.yml`:
 
 	> The OTel Collector uses these to authenticate the `awss3` log exporter.
 
-2. Start the stack:
+3. Start the stack:
 
 	```bash
 	docker compose up -d
 	```
 
-3. Check running services:
+4. Check running services:
 
 	```bash
 	docker compose ps
 	```
 
-4. Open Grafana:
+5. Open Grafana:
 
 	- URL: `http://localhost:3000`
 	- Default credentials (unless changed): `admin` / `admin`
 
-5. Stop the stack when done:
+6. Stop the stack when done:
 
 	```bash
 	docker compose down
@@ -115,11 +130,13 @@ docker compose down -v
 
 ## Suggested Learning Path
 
-1. Bring up the stack and verify all services are healthy.
-2. Send sample telemetry from a tiny Go app using OpenTelemetry.
-3. Confirm data ingestion in VictoriaMetrics and VictoriaLogs.
-4. Explore data in Grafana (dashboards + query editors).
-5. Tune retention and collector pipelines to understand trade-offs.
+1. Provision AWS infrastructure with Terraform (`terraform/`).
+2. Bring up the stack and verify all services are healthy.
+3. Send sample telemetry from the Go app using OpenTelemetry.
+4. Confirm data ingestion in VictoriaMetrics, VictoriaLogs, and VictoriaTraces.
+5. Explore data in Grafana (dashboards + query editors).
+6. Verify logs are being archived in the S3 bucket under `logs/YYYY/MM/DD/HH/MM`.
+7. Tune retention and collector pipelines to understand trade-offs.
 
 ## Project Structure
 
