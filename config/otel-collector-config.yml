@@ -15,7 +15,7 @@ service:
       exporters: [otlphttp/victoriametrics]
     logs:
       receivers: [otlp]
-      exporters: [otlphttp/victorialogs]
+      exporters: [otlphttp/victorialogs, awss3]
     traces:
       receivers: [otlp]
       exporters: [otlphttp/victoriatraces]
@@ -31,3 +31,10 @@ exporters:
 
   otlphttp/victorialogs:
     logs_endpoint: "http://victorialogs:9428/insert/opentelemetry/v1/logs"
+
+  awss3:
+    s3uploader:
+      region: 'us-east-1'
+      s3_bucket: 'tharshen-terraform-primary-bucket'
+      s3_prefix: 'logs'
+      s3_partition_format: '%Y/%m/%d/%H/%M'
