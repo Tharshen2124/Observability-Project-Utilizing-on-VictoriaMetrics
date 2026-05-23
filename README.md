@@ -1,4 +1,6 @@
 # VictoriaMetrics + VictoriaLogs Dummy Project
+<img width="2804" height="1622" alt="ArchitectureDiagram" src="https://github.com/user-attachments/assets/0dc62c5d-b494-44e5-b26c-315df8b99058" />
+
 
 This is a **learning project** to practice setting up and using:
 
